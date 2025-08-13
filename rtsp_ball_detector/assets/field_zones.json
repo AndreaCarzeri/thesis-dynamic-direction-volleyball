@@ -1,7 +1,9 @@
 [
   {
-    "id": 4,
+    "id": 3,
     "field" : 1,
+    "cam" : 6,
+    "mode" : "Defense",
     "points": [
       {
         "x": 2270,
@@ -27,8 +29,10 @@
     "is_closed": true
   },
   {
-    "id": 2,
+    "id": 1,
     "field" : 0,
+    "mode" : "Attack",
+    "cam" : 7,
     "points": [
       {
         "x": 1521,
@@ -62,8 +66,10 @@
     "is_closed": true
   },
   {
-    "id": 3,
+    "id": 2,
     "field" : 1,
+    "mode" : "Attack",
+    "cam" : 13,
     "points": [
       {
         "x": 1906,
@@ -85,8 +91,10 @@
     "is_closed": true
   },
   {
-    "id": 1,
+    "id": 0,
     "field" : 0,
+    "mode" : "Defense",
+    "cam" : 6,
     "points": [
       {
         "x": 863,

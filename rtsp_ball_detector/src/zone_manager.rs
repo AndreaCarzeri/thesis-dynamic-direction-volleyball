@@ -1,13 +1,20 @@
 // src/zone_manager.rs
 
+use std::cmp::PartialEq;
 use opencv::core as cv_core;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::BufReader;
 use anyhow::Result;
-
+use opencv::core::Point_;
+use crate::zone_manager;
 // --- STRUCTS FOR JSON DESERIALIZATION ---
 // These structs exactly match the structure of your field_zones.json file.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+enum Mode {
+    Attack,
+    Defense
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Point {
@@ -21,6 +28,68 @@ pub struct Zone {
     pub field: u32,
     pub points: Vec<Point>,
     pub is_closed: bool,
+    pub cam: u32,
+    pub mode: Mode
+}
+
+pub struct ZoneManager {
+    zones: Vec<Zone>,
+    threshold: f32, //seconds to change cam
+    old_zone: Zone,
+}
+
+impl PartialEq for Mode {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Mode::Attack, Mode::Attack) => true,
+            (Mode::Defense, Mode::Defense) => true,
+            _ => false,
+        }
+    }
+}
+
+impl ZoneManager {
+    /// Returns a reference to the zones.
+    pub fn zones(&self) -> &[Zone] {
+        &self.zones
+    }
+
+    /// Returns the threshold for changing camera.
+    pub fn threshold(&self) -> f32 {
+        self.threshold
+    }
+
+    /// Returns the current field ID.
+    pub fn old_zone(&self) -> Zone {
+        self.old_zone.clone()
+    }
+
+    pub fn get_cam(&mut self, ball_pos: Point_<i32>) -> u32 {
+        if let Some(actual_zone) = get_zone_for_point(ball_pos, &self.zones) {
+            if actual_zone.field != self.old_zone.field{
+                if actual_zone.mode == Mode::Attack {
+                    println!("Ball is in zone {:?}, no changing camera", actual_zone);
+                }else{
+                    //TODO check threshold
+                    self.old_zone = actual_zone.clone();
+                    println!("Ball is in zone {:?}, changing camera to {}", actual_zone, self.old_zone.cam);
+                }
+                self.old_zone.cam
+            }else{
+                if actual_zone.mode == Mode::Attack && self.old_zone.mode == Mode::Defense {
+                    //TODO check threshold
+                    self.old_zone = actual_zone.clone();
+                    println!("Ball is in zone {:?}, changing camera to {}", actual_zone, self.old_zone.cam);
+                } else {
+                    println!("Ball is in zone {:?}, but no camera change needed.", actual_zone);
+                }
+                self.old_zone.cam
+            }
+        }else{
+            eprintln!("Ball position ({}, {}) is outside any defined zone.", ball_pos.x, ball_pos.y);
+            return 6; // Return 0 if the point is not in any zone
+        }
+    }
 }
 
 // --- CORE FUNCTIONALITY ---
@@ -32,7 +101,7 @@ pub struct Zone {
 ///
 /// # Returns
 /// A vector of `Zone` structs loaded from the file.
-pub fn load_zones(path: &str) -> Result<Vec<Zone>> {
+pub fn load_zones(path: &str) -> Result<ZoneManager> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 
@@ -66,7 +135,12 @@ pub fn load_zones(path: &str) -> Result<Vec<Zone>> {
         .collect();
 
     println!("Successfully loaded and validated {} zones.", valid_zones.len());
-    Ok(valid_zones)
+    let zone_manager =ZoneManager {
+        zones: valid_zones.clone(),
+        threshold: 1.0,
+        old_zone: valid_zones[0].clone(),
+    };
+    Ok(zone_manager)
 }
 
 /// Determines which zone a given point belongs to.
@@ -81,7 +155,7 @@ pub fn load_zones(path: &str) -> Result<Vec<Zone>> {
 ///
 /// # Returns
 /// An `Option<u32>` containing the ID of the zone if the point is inside, otherwise `None`.
-pub fn get_zone_for_point(point: cv_core::Point, zones: &[Zone]) -> Option<u32> {
+pub fn get_zone_for_point(point: cv_core::Point, zones: &[Zone]) -> Option<&Zone> {
     for zone in zones {
 
         let mut intersections = 0;
@@ -105,7 +179,7 @@ pub fn get_zone_for_point(point: cv_core::Point, zones: &[Zone]) -> Option<u32> 
 
         // If the number of intersections is odd, the point is inside the polygon
         if intersections % 2 == 1 {
-            return Some(zone.id);
+            return Some(zone);
         }
     }
 
