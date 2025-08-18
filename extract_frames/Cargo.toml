@@ -1,0 +1,7 @@
+[package]
+name = "extract_frames"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+opencv = "0.95.1"
