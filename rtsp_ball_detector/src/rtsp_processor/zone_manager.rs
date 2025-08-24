@@ -43,6 +43,7 @@ pub struct ZoneManager {
     last_switch_time: std::time::Instant,
     change_threshold: std::time::Duration,
     last_ball_seen_time: std::time::Instant,
+    print: bool,
 }
 
 const OUTSIDE_CAM_ID: u32 = 6;
@@ -61,10 +62,7 @@ impl ZoneManager {
 
             let Some(current_zone) = get_zone_for_point(ball_pos, &self.zones) else {
                 if self.active_zone.id != -1 {
-                    println!(
-                        "CAMERA SWITCH: Valid transition to zone {}. New active cam: {}",
-                        self.active_zone.id, OUTSIDE_CAM_ID
-                    );
+                    self.print_change_cam("Valid transition to", &self.active_zone);
                     self.active_zone = self.zones.last().unwrap().clone();
                     self.last_switch_time = std::time::Instant::now();
                 }
@@ -72,18 +70,19 @@ impl ZoneManager {
             };
 
             if self.last_switch_time.elapsed() >= self.change_threshold {
-                println!(
-                    "CAMERA SWITCH: Change threshold met {:?} >= {:?}. Considering switch to zone {}.",
-                    self.last_switch_time.elapsed(),
-                    self.change_threshold,
-                    current_zone.id
-                );
+                if self.print {
+                    println!(
+                        "CAMERA SWITCH: Change threshold met {:?} >= {:?}. Considering switch to zone {}.",
+                        self.last_switch_time.elapsed(),
+                        self.change_threshold,
+                        current_zone.id
+                    );
+                }
+
                 if current_zone.field != self.active_zone.field {
                     if current_zone.mode != Mode::Attack {
-                        println!(
-                            "CAMERA SWITCH: Valid transition to zone {}. New active cam: {}",
-                            current_zone.id, current_zone.cam
-                        );
+                        self.print_change_cam("Valid transition to", current_zone);
+
                         self.active_zone = current_zone.clone();
                         self.last_switch_time = std::time::Instant::now();
                     }
@@ -91,28 +90,30 @@ impl ZoneManager {
                     && self.active_zone.mode == Mode::Defense
                     && current_zone.mode == Mode::Attack
                 {
-                    println!(
-                        "CAMERA SWITCH: Valid transition to zone {}. New active cam: {}",
-                        current_zone.id, current_zone.cam
-                    );
+                    self.print_change_cam("Valid transition to", current_zone);
                     self.active_zone = current_zone.clone();
                     self.last_switch_time = std::time::Instant::now();
                 }
             } else {
-                println!(
-                    "CAMERA SWITCH: Change threshold not met. Staying on current cam: {}",
-                    self.active_zone.cam
+                self.print_change_cam(
+                    "Change threshold not met. Staying on current",
+                    &self.active_zone,
                 );
             }
         } else if self.last_ball_seen_time.elapsed() > NO_BALL_TIMEOUT && self.active_zone.id != -1
         {
-            println!(
-                "NO BALL TIMEOUT: Ball not seen for > {:.1}s. Switching to default camera {}.",
-                NO_BALL_TIMEOUT.as_secs_f32(),
-                OUTSIDE_CAM_ID
-            );
+            self.print_change_cam(&format!("NO BALL TIMEOUT: Ball not seen for > {:.1}s. Switching to", NO_BALL_TIMEOUT.as_secs_f32()), &self.zones.last().unwrap());
             self.active_zone = self.zones.last().unwrap().clone();
             self.last_switch_time = std::time::Instant::now();
+        }
+    }
+
+    fn print_change_cam(&self, message: &str, new_zone: &Zone) {
+        if self.print {
+            println!(
+                "\n>>> ZONE MANAGER: {} zone {}, active cam: {} <<<\n",
+                message, new_zone.id, new_zone.cam
+            );
         }
     }
 
@@ -149,7 +150,7 @@ impl ZoneManager {
 }
 
 /// Loads and validates zone definitions from a JSON file into a ZoneManager.
-pub fn load_zones(path: &str, change_threshold: f32) -> Result<ZoneManager> {
+pub fn load_zones(path: &str, change_threshold: f32, print: bool) -> Result<ZoneManager> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
     let all_zones_from_file: Vec<Zone> = serde_json::from_reader(reader)?;
@@ -182,6 +183,7 @@ pub fn load_zones(path: &str, change_threshold: f32) -> Result<ZoneManager> {
         last_switch_time: std::time::Instant::now(),
         change_threshold: std::time::Duration::from_secs_f32(change_threshold),
         last_ball_seen_time: std::time::Instant::now(),
+        print,
     };
     Ok(zone_manager)
 }

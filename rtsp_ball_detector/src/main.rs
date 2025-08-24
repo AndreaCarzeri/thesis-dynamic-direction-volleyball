@@ -16,6 +16,7 @@ fn main() -> Result<()> {
         nms_threshold: 0.5,
         show_gui: true,
         change_threshold: 1.0, // in seconds
+        print_change_ball: true
     };
 
     // Create a channel to receive notifications about camera changes from the processor.

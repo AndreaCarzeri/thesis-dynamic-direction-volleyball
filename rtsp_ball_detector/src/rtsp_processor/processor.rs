@@ -26,6 +26,7 @@ pub struct ProcessorConfig {
     pub nms_threshold: f32,
     pub show_gui: bool,
     pub change_threshold: f32,
+    pub print_change_ball: bool
 }
 
 /// Encapsulates the main RTSP processing logic.
@@ -43,7 +44,7 @@ impl RTSPProcessor {
         Self {
             config: Arc::new(Mutex::new(config.clone())),
             exit_signal: Arc::new(AtomicBool::new(false)),
-            zone_manager: Arc::new(Mutex::new(zone_manager::load_zones(&config.zones_path, config.change_threshold).expect("error loading zones"))),
+            zone_manager: Arc::new(Mutex::new(zone_manager::load_zones(&config.zones_path, config.change_threshold, config.print_change_ball).expect("error loading zones"))),
             processor_handle: None,
             camera_change_sender,
         }
