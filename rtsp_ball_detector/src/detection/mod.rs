@@ -1,8 +1,5 @@
 pub mod bounding_box;
 pub mod yolo;
-pub mod background_subtractor;
-pub mod evaluation;
-pub mod compare_models;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, Deserialize, Serialize)]
