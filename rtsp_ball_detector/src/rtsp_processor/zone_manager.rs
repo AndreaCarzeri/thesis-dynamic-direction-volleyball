@@ -62,7 +62,7 @@ impl ZoneManager {
 
             let Some(current_zone) = get_zone_for_point(ball_pos, &self.zones) else {
                 if self.active_zone.id != -1 {
-                    self.print_change_cam("Valid transition to", &self.active_zone);
+                    self.print_change_cam("Valid transition to", &self.zones.last().unwrap());
                     self.active_zone = self.zones.last().unwrap().clone();
                     self.last_switch_time = std::time::Instant::now();
                 }
@@ -78,16 +78,18 @@ impl ZoneManager {
                         current_zone.id
                     );
                 }
-
                 if current_zone.field != self.active_zone.field {
-                    if current_zone.mode != Mode::Attack {
-                        self.print_change_cam("Valid transition to", current_zone);
-
-                        self.active_zone = current_zone.clone();
+                    // search the defense zone for the current field
+                    if let Some(defense_zone) = self
+                        .zones
+                        .iter()
+                        .find(|z| z.field == current_zone.field && z.mode == Mode::Defense){
+                        self.print_change_cam("Valid transition to", defense_zone);
+                        self.active_zone = defense_zone.clone();
                         self.last_switch_time = std::time::Instant::now();
                     }
-                } else if current_zone.field == self.active_zone.field
-                    && self.active_zone.mode == Mode::Defense
+                    
+                } else if self.active_zone.mode == Mode::Defense
                     && current_zone.mode == Mode::Attack
                 {
                     self.print_change_cam("Valid transition to", current_zone);
@@ -102,7 +104,13 @@ impl ZoneManager {
             }
         } else if self.last_ball_seen_time.elapsed() > NO_BALL_TIMEOUT && self.active_zone.id != -1
         {
-            self.print_change_cam(&format!("NO BALL TIMEOUT: Ball not seen for > {:.1}s. Switching to", NO_BALL_TIMEOUT.as_secs_f32()), &self.zones.last().unwrap());
+            self.print_change_cam(
+                &format!(
+                    "NO BALL TIMEOUT: Ball not seen for > {:.1}s. Switching to",
+                    NO_BALL_TIMEOUT.as_secs_f32()
+                ),
+                &self.zones.last().unwrap(),
+            );
             self.active_zone = self.zones.last().unwrap().clone();
             self.last_switch_time = std::time::Instant::now();
         }

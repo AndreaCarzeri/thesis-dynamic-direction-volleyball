@@ -10,9 +10,9 @@ fn main() -> Result<()> {
     // Define the initial configuration for the RTSP processor.
     let config = ProcessorConfig {
         rtsp_url: "rtsp://127.0.0.1:8554/stream".to_string(),
-        onnx_model_path: "assets/best.onnx".to_string(),
+        onnx_model_path: "assets/best-small.onnx".to_string(),
         zones_path: "assets/field_zones.json".to_string(),
-        confidence_threshold: 0.5,
+        confidence_threshold: 0.4,
         nms_threshold: 0.5,
         show_gui: true,
         change_threshold: 1.0, // in seconds
