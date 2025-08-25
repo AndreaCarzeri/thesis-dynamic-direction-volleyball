@@ -3,7 +3,7 @@ message: "If you use this software in your research, please cite it as follows."
 authors:
   - family-names: "Carzeri"
     given-names: "Andrea"
-title: "Software for the thesis: AUTOMATED VOLLEYBALL DIRECTING VIA REAL-TIME BALL DETECTION IN RUST"
+title: "Software for the thesis: automated volleyball directing via real-time ball detection in rust"
 version: 1.0.0 # O un tag di release se ne hai creato uno
 commit: 0a1a637967391faf51e410f0f16e1d6bb87c0450
 date-released: 2025-08-25
