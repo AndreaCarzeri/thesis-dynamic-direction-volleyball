@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software in your research, please cite it as follows."
+authors:
+  - family-names: "Carzeri"
+    given-names: "Andrea"
+title: "Software for the thesis: AUTOMATED VOLLEYBALL DIRECTING VIA REAL-TIME BALL DETECTION IN RUST"
+version: 1.0.0 # O un tag di release se ne hai creato uno
+commit: [INSERISCI QUI L'HASH DEL COMMIT SPECIFICO] # FONDAMENTALE, vedi note sotto
+date-released: 2025-08-25
+repository-code: "https://github.com/AndreaCarzeri/thesis-dynamic-direction-volleyball"
