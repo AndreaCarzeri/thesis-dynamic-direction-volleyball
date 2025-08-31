@@ -2,6 +2,7 @@
 name = "rtsp_ball_detector"
 version = "0.1.0"
 edition = "2024"
+authors = ["Andrea Carzeri andreacarzeri@gmail.com"]
 
 [dependencies]
 opencv = "0.95.1"

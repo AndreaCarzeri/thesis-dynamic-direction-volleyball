@@ -61,8 +61,8 @@ fn load_state_from_file(path: &str) -> Result<AppState, Box<dyn std::error::Erro
             .collect();
 
         zones.insert(zone_data.id+1, points);
-        closed_status.insert(zone_data.id, zone_data.is_closed);
-        metadata.insert(zone_data.id, ZoneMetadata {
+        closed_status.insert(zone_data.id+1, zone_data.is_closed);
+        metadata.insert(zone_data.id+1, ZoneMetadata {
             cam: zone_data.cam,
             mode: zone_data.mode,
             field: zone_data.field,
